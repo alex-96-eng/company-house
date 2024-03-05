@@ -1,0 +1,42 @@
+version: "3.8"
+
+volumes:
+  postgresdata01:
+    driver: local
+
+services:
+
+  test-db:
+    container_name: postgres
+    build:
+      context: ./tools/database/local/postgres
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      POSTGRES_DB: test_db
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: changeme
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "test_db", "-U", "test_user"]
+      interval: 5s
+      retries: 5
+    volumes:
+      - postgresdata01:/var/lib/postgresql/data/pgdata
+
+  test-db-pgadmin:
+    container_name: test-db-pgadmin
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: hello@example.com
+      PGADMIN_DEFAULT_PASSWORD: changeme
+    volumes:
+      - ./tools/database/local/pgadmin4/servers.json:/pgadmin4/servers.json
+    depends_on:
+      test-db:
+        condition: service_healthy

@@ -1,14 +1,11 @@
 using System;
 using System.Globalization;
-
 using CsvHelper.Configuration.Attributes;
 
 
-public class CompanyRow
-{
-	[Name("CompanyNumber")]
-    public string CompanyNumber { get; set; }
 
+public class CompanyDataRow : Row
+{
     [Name("CompanyName")]
     public string? CompanyName { get; set; }
      
@@ -97,7 +94,7 @@ public class CompanyRow
     public int? NumLimPartners { get; set; }
     
     [Name("URI")]
-    public string? URI { get; set; }
+    public Uri? URI { get; set; }
     
     [Name("ConfStmtNextDueDate")]
     [DateTimeStyles(DateTimeStyles.None)]
@@ -109,17 +106,9 @@ public class CompanyRow
 	[Format("dd/MM/yyyy")]
     public string? ConfStmtLastMadeUpDate { get; set; }
    
-    public CompanyRow()
+    public CompanyDataRow()
     {
         // SICCodes = new List<string>();
         // PreviousCompanyNames = new List<PreviousCompanyName>();
     }
 }
-
-// Assuming a class for previous company names for demonstration
-// public class PreviousCompanyName
-// {
-//     [DateTimeStyles(DateTimeStyles.AdjustToUniversal)]
-//     public string? CONDATE { get; set; }
-//     public string CompanyName { get; set; }
-// }

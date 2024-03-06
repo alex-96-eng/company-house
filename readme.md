@@ -22,18 +22,23 @@ docker compose down --volumes --remove-orphans
 ```console
 dotnet add package CsvHelper
 dotnet add package Npgsql
+dotnet add package Microsoft.Extensions.Configuration
 ```
 
 ## Usage
-> Navigate to a new terminal and run 
+> Navigate to a new terminal and run
 ```console
 cd CompanyHouse
-dotnet run download data/test_data
+```
+
+# Load Company Data
+```
+dotnet run company-data-dump data/test_data
 ```
 
 ## Snapshots 
 
-> There are APIs that exists for this data, but their rate limits I think its best to warehouse the data.
+There are APIs that exists for this data, but their rate limits I think its best to warehouse the data.
 
 1. The Free Company Data Product is a downloadable data snapshot containing basic company data of live 
    companies on the register. See: [Company data product](https://download.companieshouse.gov.uk/en_output.html)

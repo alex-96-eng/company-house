@@ -1,8 +1,6 @@
 DROP TABLE IF EXISTS company_data;
 CREATE TABLE company_data (
-    
-    companynumber VARCHAR(20) not null, 
-    
+    companynumber VARCHAR(20) PRIMARY KEY, 
     -- No idea if these are nullable. Will fix up later.
     companyname VARCHAR(255),
     addressline1 VARCHAR(255),
@@ -29,11 +27,9 @@ CREATE TABLE company_data (
     nummortsatisfied INTEGER,
     numgenpartners INTEGER,
     numlimpartners INTEGER,
-    uri VARCHAR(255),
+    uri TEXT,
     confstmtnextduedate TEXT,
-    confstmtlastmadeupdate TEXT,
-    
-    PRIMARY KEY (companynumber)
+    confstmtlastmadeupdate TEXT
 );
 
 CREATE UNIQUE INDEX idx_companynumber ON company_data (companynumber);

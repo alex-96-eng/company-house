@@ -1,115 +1,157 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Reflection;
-using System.Globalization;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-
-using CsvHelper;
-using CsvHelper.Configuration;
-using Npgsql;
-
-
-class Program
+﻿// Not sure what to call it.
+namespace CompanyHouseNamespace
 {
-    /// <summary>
-    /// This database is span up and exposed in the docker-compose.yaml file.
-    /// </summary>
-    private const string ConnectionString = "Host=localhost;Username=test_user;Password=changeme;Database=test_db";
-    private const int BatchSize = 2;
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
+    using System.Globalization;
+    using System.Threading.Tasks;
+    using System.Collections.Generic;
+    using CsvHelper;
+    using Npgsql;
 
-    static async Task Main(string[] args)
+    class Program
     {
-        if (args.Length == 0)
+        const string connectionString = "Host=localhost;Username=test_user;Password=changeme;Database=test_db";
+        private const int BatchSize = 100;
+
+        static async Task Main(string[] args)
         {
-            ShowUsage();
-            return;
+            if (args.Length == 0)
+            {
+                ShowUsage();
+                return;
+            }
+            string directoryPath = args.Length > 1 ? args[1] : string.Empty;
+            switch (args[0].ToLower())
+            {
+                // This case statement has redundency, but the cli is just for dev puposes, so not 
+                // put any time into altering it. 
+                case "load-company-data":
+                    if (string.IsNullOrEmpty(directoryPath))
+                    {
+                        Console.WriteLine("You must specify a directory path for the 'load-company-data' command.");
+                        ShowUsage();
+                        return;
+                    }
+                    Console.WriteLine("Loading and storing company data");
+                    await using (var connection = new NpgsqlConnection(connectionString))
+                    {
+                        await connection.OpenAsync();
+                        var dataHandler = new CompanyDataHandler(connection);
+                        await dataHandler.LoadAndStoreDataAsync(directoryPath, BatchSize);
+                    }
+                    break;
+
+                case "load-account-data":
+                    if (string.IsNullOrEmpty(directoryPath))
+                    {
+                        Console.WriteLine("You must specify a directory path for the 'load-company-data' command.");
+                        ShowUsage();
+                        return;
+                    }
+                    Console.WriteLine("Loading and storing company data");
+                    await using (var connection = new NpgsqlConnection(connectionString))
+                    {
+                        await connection.OpenAsync();
+                        var dataHandler = new AccountDataHandler(connection);
+                        await dataHandler.LoadAndStoreDataAsync(directoryPath, BatchSize);
+                    }
+                    break;
+                    
+                case "load-psc-data":
+                    if (string.IsNullOrEmpty(directoryPath))
+                    {
+                        Console.WriteLine("You must specify a directory path for the 'load-company-data' command.");
+                        ShowUsage();
+                        return;
+                    }
+                    Console.WriteLine("Loading and storing company data");
+                    await using (var connection = new NpgsqlConnection(connectionString))
+                    {
+                        await connection.OpenAsync();
+                        var dataHandler = new PSCDataHandler(connection);
+                        await dataHandler.LoadAndStoreDataAsync(directoryPath, BatchSize);
+                    }
+                    break;
+
+                // Additional cases for 'load-account-data' and 'load-psc-data' go here
+                default:
+                    Console.WriteLine("Invalid command.");
+                    ShowUsage();
+                    break;
+            }
+        }
+        private static void ShowUsage()
+        {
+            // This is just for developmr purposes
+            Console.WriteLine("Usage: dotnet run [command]");
+            Console.WriteLine("Commands:");
+            Console.WriteLine("\tload-company-data - Takes a local Company Data CSV and loads into DB.");
+            // will add other commands here
+        }
+    }
+    abstract class DataHandler
+    {
+        protected readonly NpgsqlConnection connection;
+        protected readonly int BatchSize;
+        
+        protected DataHandler(NpgsqlConnection connection)
+        {
+            this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
         }
 
-        switch (args[0].ToLower())
+        public async Task LoadAndStoreDataAsync(string directoryPath, int batchSize)
         {
-            case "download":
-                if (args.Length < 2)
+            {
+                if (!Directory.Exists(directoryPath))
                 {
-                    Console.WriteLine("You must specify a directory path for the 'download' command.");
-                    ShowUsage();
+                    Console.WriteLine($"The specified directory does not exist: {directoryPath}");
                     return;
                 }
-                string directoryPath = args[1];
-                await DownloadAndStoreCompanyDataAsync(directoryPath);
-                break;
-            default:
-                Console.WriteLine("Invalid command.");
-                ShowUsage();
-                break;
-        }
-    }
-
-    private static void ShowUsage()
-    {
-        Console.WriteLine("Usage: dotnet run [command]");
-        Console.WriteLine("Commands:");
-        Console.WriteLine("\tdownload - Download and store company data");
-    }
-
-    private static async Task DownloadAndStoreCompanyDataAsync(string directoryPath)
-    {
-        if (!Directory.Exists(directoryPath))
-        {
-            Console.WriteLine($"The specified directory does not exist: {directoryPath}");
-            return;
-        }
-
-        Console.WriteLine("Downloading and storing company data");
-
-        var filePaths = Directory.GetFiles(directoryPath, "*.csv");
-        foreach (var filePath in filePaths)
-        {
-            using var reader = new StreamReader(filePath);
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
-            {
-                var records = csv.GetRecords<CompanyRow>();
-                var batch = new List<CompanyRow>();
-                foreach (var record in records)
+                
+                Console.WriteLine("Downloading and storing company data");
+                string[] filePaths = Directory.GetFiles(directoryPath, "*.csv");
+                foreach (string filePath in filePaths)
                 {
-                    batch.Add(record);
-                    if (batch.Count >= BatchSize)
+                    using var reader = new StreamReader(filePath);
+                    using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                     {
-                        await InsertRecordsAsync(batch);
-                        batch.Clear();
+                        IEnumerable<CompanyDataRow> records = csv.GetRecords<CompanyDataRow>();
+                        var batch = new List<Row>();
+                        foreach (CompanyDataRow record in records)
+                        {
+                            batch.Add(record);
+                            if (batch.Count >= BatchSize)
+                            {
+                                await InsertRecordsAsync(batch);
+                                batch.Clear();
+                            }
+                        }
+                        if (batch.Any())
+                        {
+                            await InsertRecordsAsync(batch);
+                        }
                     }
-                }
-
-                if (batch.Any())
-                {
-                    await InsertRecordsAsync(batch);
                 }
             }
         }
-    }
 
-    private static void DownloadAndStoreAccountsDataAsync()
-    {
-        // todo
+        public abstract Task InsertRecordsAsync(List<Row> records);
     }
-    
-    private static void DownloadAndStorePSCDataAsync()
+    class CompanyDataHandler : DataHandler
     {
-        // todo
-    }
+        public CompanyDataHandler(NpgsqlConnection connection) : base(connection)
+        {
+            
+        }
+        public override async Task InsertRecordsAsync(List<Row> records)
+        {
+            await using NpgsqlTransaction transaction = await connection.BeginTransactionAsync();
 
-    private static async Task InsertRecordsAsync(List<CompanyRow> records)
-    {
-        using var connection = new NpgsqlConnection(ConnectionString);
-        await connection.OpenAsync();
-        await using var transaction = await connection.BeginTransactionAsync();
-        
-        // Make this clevererer
-        var commandText = @"INSERT INTO company_data (
+            // Make this clevererer
+            string commandText = @"INSERT INTO company_data (
             companyname, companynumber, addressline1, addressline2, posttown, county, country, postcode,
             companycategory, companystatus, countryoforigin, dissolutiondate, incorporationdate, accountrefday,
             accountrefmonth, accountnextduedate, accountlastmadeupdate, accountcategory, returnsnextduedate,
@@ -122,23 +164,52 @@ class Program
             @returnslastmadeupdate::DATE, @mortgagesnummortcharges, @mortgagesnummortoutstanding, @mortgagesnummortpartsatisfied,
             @nummortsatisfied, @numgenpartners, @numlimpartners, @uri, @confstmtnextduedate::DATE, @confstmtlastmadeupdate::DATE)";
 
-        foreach (var record in records)
-        {
-            using var command = new NpgsqlCommand(commandText, connection, transaction);
-            var properties = record.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in properties)
+            foreach (var record in records)
             {
-                var propName = property.Name.ToLower();
-                var value = property.GetValue(record);
-                
-                if (value is string stringValue && string.IsNullOrEmpty(stringValue))
+                using var command = new NpgsqlCommand(commandText, connection, transaction);
+                PropertyInfo[] properties = record.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                foreach (var property in properties)
                 {
-                    value = DBNull.Value;
+                    string propName = property.Name.ToLower();
+                    object value = property.GetValue(record);
+                    
+                    // Should probs live in the constructor
+                    if (value is Uri uriValue)
+                    {
+                        value = uriValue.ToString();
+                    }
+                    else if (value is string stringValue && string.IsNullOrEmpty(stringValue))
+                    {
+                        value = DBNull.Value;
+                    }
+                    
+                    command.Parameters.AddWithValue($"@{propName}", value ?? DBNull.Value);
                 }
-                command.Parameters.AddWithValue($"@{propName}", value ?? DBNull.Value);
+                await command.ExecuteNonQueryAsync();
             }
-            await command.ExecuteNonQueryAsync();
+            await transaction.CommitAsync();
         }
-        await transaction.CommitAsync();
+    }
+    class AccountDataHandler : DataHandler
+    {
+        public AccountDataHandler(NpgsqlConnection connection) : base(connection)
+        {
+            
+        }
+        public override async Task InsertRecordsAsync(List<Row> records)
+        {
+            // todo 
+        }
+    }
+    class PSCDataHandler : DataHandler
+    {
+        public PSCDataHandler(NpgsqlConnection connection) : base(connection)
+        {
+            
+        }
+        public override async Task InsertRecordsAsync(List<Row> records)
+        {
+            // todo 
+        }
     }
 }

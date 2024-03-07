@@ -1,5 +1,6 @@
 namespace CompanyHouse.DataHandlers
 {
+    using System.Globalization;
     using System.Reflection;
     
     using Npgsql;
@@ -20,7 +21,7 @@ namespace CompanyHouse.DataHandlers
         }
         public async Task LoadCSVAndStoreDataAsync(string directoryPath)
         {
-            string[] filePaths = Utilitlies.GetAllFilePathsInDirectory(directoryPath, "csv");
+            string[] filePaths = FileUtil.GetAllFilePathsInDirectory(directoryPath, "csv");
             Console.WriteLine("Downloading and storing CVS data");
             foreach (string filePath in filePaths)
             {
@@ -28,19 +29,19 @@ namespace CompanyHouse.DataHandlers
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
                     IEnumerable<BaseData> records = csv.GetRecords<BaseData>();
-                    var batchData = new List<BaseData>();
+                    var batchedData = new List<BaseData>();
                     foreach (BaseData record in records)
                     {
-                        batch.Add(record);
-                        if (batchData.Count >= batchSize)
+                        batchedData.Add(record);
+                        if (batchedData.Count >= batchSize)
                         {
-                            await InsertRecordsAsync(batchData);
-                            batchData.Clear();
+                            await InsertRecordsAsync(batchedData);
+                            batchedData.Clear();
                         }
                     }
-                    if (batchData.Any())
+                    if (batchedData.Any())
                     {
-                        await InsertRecordsAsync(batchData);
+                        await InsertRecordsAsync(batchedData);
                     }
                 }
             }
@@ -184,8 +185,8 @@ namespace CompanyHouse.DataHandlers
             {
                 string jsonContent = await File.ReadAllTextAsync(filePath);
                 using JsonDocument doc = JsonDocument.Parse(jsonContent);
-                string root = doc.RootElement;
-                string data = root.GetProperty("data");
+                var root = doc.RootElement;
+                var data = root.GetProperty("data");
                 var record = new CompanyData
                 {
                     CompanyNumber = root.GetString("company_number"),
@@ -204,13 +205,13 @@ namespace CompanyHouse.DataHandlers
                     Console.WriteLine(record);
                     if (batchedData.Count >= batchSize)
                     {
-                        await InsertRecordsAsync(batch);
+                        await InsertRecordsAsync(batchedData);
                         batchedData.Clear();
                     }
                 }
-                if (batch.Any())
+                if (batchedData.Any())
                 {
-                    await InsertRecordsAsync(batch);
+                    await InsertRecordsAsync(batchedData);
                 }
             }
         }

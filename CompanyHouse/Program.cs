@@ -10,6 +10,8 @@
     using System.Collections.Generic;
     using Npgsql;
     
+    using DataHandlers;
+    
     class Program
     {
         const string connectionString = "Host=localhost;Username=test_user;Password=changeme;Database=test_db";

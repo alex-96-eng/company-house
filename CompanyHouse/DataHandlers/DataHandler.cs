@@ -8,10 +8,10 @@ namespace CompanyHouse.DataHandlers
     using CsvHelper;
     using Npgsql;
 
-    public abstract class DataHandler(NpgsqlConnection connection)
+    public abstract class DataHandler(NpgsqlConnection connection, int batchSize = 100)
     {
         protected readonly NpgsqlConnection Connection = connection ?? throw new ArgumentNullException(nameof(connection));
-        protected readonly int BatchSize;
+        protected readonly int BatchSize = batchSize;
 
         public async Task LoadAndStoreDataAsync(string directoryPath)
         {

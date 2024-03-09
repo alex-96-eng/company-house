@@ -93,7 +93,7 @@ namespace CompanyHouse.Rows
         public int? NumLimPartners { get; set; }
         
         [Name("URI")]
-        public Uri? URI { get; set; }
+        public Uri? Uri { get; set; }
         
         [Name("ConfStmtNextDueDate")]
         [DateTimeStyles(DateTimeStyles.None)]

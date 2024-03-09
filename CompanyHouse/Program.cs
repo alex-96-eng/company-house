@@ -7,7 +7,6 @@
     public class Program
     {
         private const string ConnectionString = "Host=localhost;Username=test_user;Password=changeme;Database=test_db";
-        private const int BatchSize = 100;
 
         public static async Task Main(string[] args)
         {

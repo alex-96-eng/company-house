@@ -1,0 +1,10 @@
+{
+    "profiles": {
+        "Company-House": {
+            "commandName": "Project",
+            "targetProject": "${workspaceFolder}/CompanyHouse/CompanyHouse.csproj",
+            "executablePath": "${workspaceFolder}/CompanyHouse/bin/Debug/net8.0/CompanyHouse",
+            "commandLineArgs": "should-complain, but currently entirely ignored",
+        }
+    }
+}

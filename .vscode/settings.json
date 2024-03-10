@@ -1,0 +1,4 @@
+{
+    "csharp.debug.logging.moduleLoad": false,
+    "debug.terminal.clearBeforeReusing": true
+}

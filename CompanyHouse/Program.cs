@@ -83,7 +83,9 @@
             // This is just for developmr purposes
             Console.WriteLine("Usage: dotnet run [command]");
             Console.WriteLine("Commands:");
-            Console.WriteLine("\tload-company-data - Takes a local Company Data CSV and loads into DB.");
+            Console.WriteLine("\tload-company-data - Takes a local company data CSV and loads into DB.");
+            Console.WriteLine("\tload-account-data - Takes a local account data CSV and loads into DB.");
+            Console.WriteLine("\tload-psc-data - Takes a local PSC CSV and loads into DB.");
             // will add other commands here
         }
     }

@@ -65,7 +65,7 @@
                     await using (var connection = new NpgsqlConnection(ConnectionString))
                     {
                         await connection.OpenAsync();
-                        var dataHandler = new DataHandlers.PSCDataHandler(connection);
+                        var dataHandler = new DataHandlers.PscDataHandler(connection);
                         await dataHandler.LoadAndStoreDataAsync(directoryPath);
                     }
                     break;
@@ -80,7 +80,7 @@
 
         private static void ShowUsage()
         {
-            // This is just for developmr purposes
+            // This is just for developer purposes
             Console.WriteLine("Usage: dotnet run [command]");
             Console.WriteLine("Commands:");
             Console.WriteLine("\tload-company-data - Takes a local company data CSV and loads into DB.");

@@ -6,7 +6,7 @@ namespace CompanyHouse.DataHandlers
     using System.Threading.Tasks;
     using Npgsql;
 
-    class CompanyDataHandler(NpgsqlConnection connection, int batchSize = 100): DataHandler(connection, batchSize)
+    sealed class CompanyDataHandler(NpgsqlConnection connection, int batchSize = 100): DataHandler(connection, batchSize)
     {
         protected override async Task InsertRecordsAsync(List<Rows.Row> records)
         {
@@ -32,7 +32,7 @@ namespace CompanyHouse.DataHandlers
 
                 foreach (PropertyInfo property in properties)
                 {
-                    string propName = property.Name.ToLower();
+                    string propName = property.Name.ToLowerInvariant();
                     object? value = property.GetValue(record);
                     
                     // Should probs live in the constructor

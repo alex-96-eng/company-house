@@ -1,5 +1,6 @@
 namespace CompanyHouse.Rows
 {
+    using System;
     using System.Globalization;
     using CsvHelper.Configuration.Attributes;
 

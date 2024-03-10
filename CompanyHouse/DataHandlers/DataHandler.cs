@@ -11,7 +11,7 @@ namespace CompanyHouse.DataHandlers
     public abstract class DataHandler(NpgsqlConnection connection, int batchSize = 100)
     {
         protected readonly NpgsqlConnection Connection = connection ?? throw new ArgumentNullException(nameof(connection));
-        protected readonly int BatchSize = batchSize;
+        private readonly int BatchSize = batchSize;
 
         public async Task LoadAndStoreDataAsync(string directoryPath)
         {

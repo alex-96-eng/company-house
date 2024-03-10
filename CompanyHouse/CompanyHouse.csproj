@@ -13,6 +13,8 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <StartArguments>load-company-data data/test_data/company_house_dump.csv</StartArguments>
   </PropertyGroup>
 
   <ItemGroup>
